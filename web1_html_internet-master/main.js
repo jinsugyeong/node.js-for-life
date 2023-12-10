@@ -34,7 +34,7 @@ var app = http.createServer(function(request, response) {
 
   } else if(pathname === '/create') {   //create 눌렀을 때
     fs.readdir('./data',function(error, filelist) {
-      var title = 'WEB - create';
+      var title = 'create';
       var description = 'Hello, Node.js';
       var list = templateList(filelist);
       var template =templateHTML(title, list, `
@@ -64,8 +64,11 @@ var app = http.createServer(function(request, response) {
       var post = qs.parse(body);
       var title = post.title;
       var description = post.description;
-      console.log(title);
-      console.log(description);
+                  //   파일 ,  파일에 쓸 내용 ,  인코딩 방식, callback
+      fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+          response.writeHead(302, {Location: `/?id=${title}`});
+          response.end();
+      });
     });
 
   } else {                              //루트가 아닐 때 실행(오류 O)
