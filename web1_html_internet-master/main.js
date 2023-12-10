@@ -1,7 +1,7 @@
 var http = require('http');
 var fs = require('fs');
 var url = require('url');
-
+var qs = require('querystring');
 var app = http.createServer(function(request, response) {
   var _url = request.url;
   var queryData = url.parse(_url, true).query;
@@ -38,7 +38,7 @@ var app = http.createServer(function(request, response) {
       var description = 'Hello, Node.js';
       var list = templateList(filelist);
       var template =templateHTML(title, list, `
-        <form action="http://localhost:3000/create_process" method="post">
+        <form action="http://localhost:3000/create_process" method="POST">
           <p><input type="text" name="title" placeholder="title" /></p>
           <p>
             <textarea name="description" placeholder="description" ></textarea>
@@ -50,6 +50,24 @@ var app = http.createServer(function(request, response) {
       response.writeHead(200);
       response.end(template); //template 문자열 응답
     });
+
+  }else if(pathname === '/create_process') {
+    var body = '';
+    request.on('data', function(data) {
+      //조각조각 나눠서 데이터를 수신할 때마다 호출되는 콜백 함수
+      //데이터를 처리하는 기능을 정의
+      body = body + data;
+    });
+    request.on('end', function(data) {
+      //더이상 수신할 정보가 없으면 호출되는 콜백 함수
+      //데이터 처리를 마무리하는 기능을 정의
+      var post = qs.parse(body);
+      var title = post.title;
+      var description = post.description;
+      console.log(title);
+      console.log(description);
+    });
+
   } else {                              //루트가 아닐 때 실행(오류 O)
     response.writeHead(400);
     response.end('Not found');
