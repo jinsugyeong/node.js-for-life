@@ -3,6 +3,7 @@ var fs = require('fs');
 var url = require('url');
 var qs = require('querystring');
 var template = require('./lib/template.js');
+var path = require('path');
 var app = http.createServer(function(request, response) {
   var _url = request.url;
   var queryData = url.parse(_url, true).query;
@@ -23,16 +24,17 @@ var app = http.createServer(function(request, response) {
       });
     }else {                             //쿼리 스트링 있을 때 실행 (홈 X)
       fs.readdir('./data',function(error, filelist) {
-        fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
+        var filterId = path.parse(queryData.id).base;
+        fs.readFile(`data/${filterId}`, 'utf8', function(err, description){
           var title = queryData.id;
           var list = template.list(filelist);
           var html =template.HTML(title, list,
             `<h2>${title}</h2><p>${description}</p>`,
             `<a href="/create">create</a>
              <a href="/update?id=${title}">update</a>
-             <form id="deleteForm" action="/delete_process" method="POST">
+             <form action="/delete_process" method="POST">
                <input type="hidden" name="id" value="${title}" />
-               <input type="button" value="delete" id="deleteBtn" />
+               <input type="submit" value="delete" />
              </form>`);
           response.writeHead(200);
           response.end(html); 
@@ -51,7 +53,8 @@ var app = http.createServer(function(request, response) {
     request.on('end', function(data) {
       var post = qs.parse(body);
       var id = post.id;
-      fs.unlink(`data/${id}`, function(err){
+      var filterId = path.parse(id).base;
+      fs.unlink(`data/${filterId}`, function(err){
         response.writeHead(302, {Location: `/`});
         response.end();
       });
@@ -60,7 +63,8 @@ var app = http.createServer(function(request, response) {
     
   } else if(pathname === '/update') {    //update일 때 실행
     fs.readdir('./data',function(error, filelist) {
-      fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
+      var filterId = path.parse(queryData.id).base;
+      fs.readFile(`data/${filterId}`, 'utf8', function(err, description){
         var title = queryData.id;
         var list = template.list(filelist);
         var html =template.HTML(title, list,`
@@ -72,7 +76,7 @@ var app = http.createServer(function(request, response) {
           </p>
           <p><input type="submit" /></p>
         </form>
-      `, `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
+        `, `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
 
         response.writeHead(200);
         response.end(html); 
