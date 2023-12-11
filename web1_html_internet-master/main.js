@@ -13,46 +13,98 @@ var app = http.createServer(function(request, response) {
         var title = 'Welcome';
         var description = 'Hello, Node.js';
         var list = templateList(filelist);
-        var template =templateHTML(title, list, `<h2>${title}</h2><p>${description}</p>`);
+        var template =templateHTML(title, list,
+          `<h2>${title}</h2><p>${description}</p>`,
+          `<a href="/create">create</a>`);
 
         response.writeHead(200);
         response.end(template); //template 문자열 응답
       });
-
     }else {                             //쿼리 스트링 있을 때 실행 (홈 X)
-      fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
-        fs.readdir('./data',function(error, filelist) {
+      fs.readdir('./data',function(error, filelist) {
+        fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
           var title = queryData.id;
           var list = templateList(filelist);
-          var template =templateHTML(title, list, `<h2>${title}</h2><p>${description}</p>`);
+          var template =templateHTML(title, list,
+            `<h2>${title}</h2><p>${description}</p>`,
+            `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
 
           response.writeHead(200);
-          response.end(template); //template 문자열 응답
+          response.end(template); 
         });
       });
     }
+  } else if(pathname === '/update') {    //update일 때 실행
+    fs.readdir('./data',function(error, filelist) {
+      fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){
+        var title = queryData.id;
+        var list = templateList(filelist);
+        var template =templateHTML(title, list,`
+        <form action="/update_process" method="POST">
+          <input type="hidden" name="id" value="${title}" />
+          <p><input type="text" name="title" placeholder="title" value="${title}" /></p>
+          <p>
+            <textarea name="description" placeholder="description">${description}</textarea>
+          </p>
+          <p><input type="submit" /></p>
+        </form>
+      `, `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
 
-  } else if(pathname === '/create') {   //create 눌렀을 때
+        response.writeHead(200);
+        response.end(template); 
+      });
+    });
+
+
+  } else if(pathname === '/update_process') {    //update_process일 때 실행
+    var body = '';
+
+    request.on('data', function(data) {
+      body = body + data;
+    });
+
+    request.on('end', function(data) {
+      var post = qs.parse(body);
+      var id = post.id; //기존 title
+      var title = post.title; //변경할 title
+      var description = post.description;
+      fs.rename(`data/${id}`,`data/${title}`, function(err){ 
+        if(err)
+          console.log(err);
+        else {
+          fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+            response.writeHead(302, {Location: `/?id=${title}`});
+            response.end();
+          });
+        }
+      });
+      
+    });
+
+
+  } else if(pathname === '/create') {   //create일 때 실행
     fs.readdir('./data',function(error, filelist) {
       var title = 'create';
       var description = 'Hello, Node.js';
       var list = templateList(filelist);
       var template =templateHTML(title, list, `
-        <form action="http://localhost:3000/create_process" method="POST">
+        <form action="/create_process" method="POST">
           <p><input type="text" name="title" placeholder="title" /></p>
           <p>
             <textarea name="description" placeholder="description" ></textarea>
           </p>
           <p><input type="submit" /></p>
         </form>
-      `);
+      `, '');
 
       response.writeHead(200);
-      response.end(template); //template 문자열 응답
+      response.end(template); 
     });
 
-  }else if(pathname === '/create_process') {
+
+  }else if(pathname === '/create_process') {  //create_process일 때 실행
     var body = '';
+
     request.on('data', function(data) {
       //조각조각 나눠서 데이터를 수신할 때마다 호출되는 콜백 함수
       //데이터를 처리하는 기능을 정의
@@ -71,6 +123,9 @@ var app = http.createServer(function(request, response) {
       });
     });
 
+
+
+
   } else {                              //루트가 아닐 때 실행(오류 O)
     response.writeHead(400);
     response.end('Not found');
@@ -85,7 +140,7 @@ app.listen(3000);
  * @param {*} body 본문
  * @returns 중복코드 => template
  */
-function templateHTML(title, list, body) {
+function templateHTML(title, list, body, control) {
   return `
   <!doctype html>
   <html>
@@ -96,7 +151,7 @@ function templateHTML(title, list, body) {
     <body>
       <h1><a href="/">WEB</a></h1>
       ${list}
-      <a href="/create">create</a>
+      ${control}
       ${body}
     </body>
   </html>
