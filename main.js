@@ -60,19 +60,17 @@ var app = http.createServer(function(request, response) {
 
   } else if(pathname === '/delete_process') {    //delete_process일 때 실행
     var body = '';
-
     request.on('data', function(data) {
       body = body + data;
     });
-
     request.on('end', function(data) {
       var post = qs.parse(body);
-      var id = post.id;
-      var filterId = path.parse(id).base;
-      fs.unlink(`data/${filterId}`, function(err){
-        response.writeHead(302, {Location: `/`});
-        response.end();
-      });
+      db.query('DELETE FROM topic WHERE id=?',[post.id], function(error, result) {
+          if(error) throw error;
+          response.writeHead(302, {Location: `/`});
+          response.end();
+        }
+      );
     });
     
     
