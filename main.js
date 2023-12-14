@@ -126,22 +126,22 @@ var app = http.createServer(function(request, response) {
 
 
   } else if(pathname === '/create') {   //create일 때 실행
-    fs.readdir('./data',function(error, filelist) {
-      var title = 'create';
-      var description = 'Hello, Node.js';
-      var list = template.list(filelist);
-      var html =template.HTML(title, list, `
-        <form action="/create_process" method="POST">
-          <p><input type="text" name="title" placeholder="title" /></p>
+    db.query(`SELECT * FROM topic`, function(error, topics) {
+      var title = 'Create';
+      var list = template.list(topics);
+      var html = template.HTML(title, list, 
+        `<form action="create_process" method="POST">
+          <p><input type="text" name="title" placeholder="title"></p>
           <p>
-            <textarea name="description" placeholder="description" ></textarea>
+            <textarea name="description" placeholder="description"></textarea>
           </p>
-          <p><input type="submit" /></p>
-        </form>
-      `, '');
-
+          <p><input type="submit"></p>
+          </form>
+        `, 
+        `<a href="/create"></a>`
+      );
       response.writeHead(200);
-      response.end(html); 
+      response.end(html);
     });
 
 
@@ -157,15 +157,30 @@ var app = http.createServer(function(request, response) {
       //더이상 수신할 정보가 없으면 호출되는 콜백 함수
       //데이터 처리를 마무리하는 기능을 정의
       var post = qs.parse(body);
-      var title = post.title;
-      var description = post.description;
-                  //   파일 ,  파일에 쓸 내용 ,  인코딩 방식, callback
-      fs.writeFile(`data/${title}`, description, 'utf8', function(err){
-          response.writeHead(302, {Location: `/?id=${title}`});
+      db.query(`
+        INSERT INTO topic
+        (
+          title
+          ,description
+          ,created
+          ,author_id
+        )
+        VALUES(
+           ?
+          ,?
+          ,NOW()
+          ,?
+        )`,
+        [post.title, post.description, 3],
+        function(error, result) {
+          if(error) {
+            throw error;
+          }
+          response.writeHead(302, {Location: `/?id=${result.insertId}`});
           response.end();
-      });
+        }
+      );
     });
-
 
 
 
