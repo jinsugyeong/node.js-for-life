@@ -42,15 +42,13 @@ var app = http.createServer(function(request, response) {
           }
           var title = topic[0].title;
           var description = topic[0].description;
-          var sanitizedTitle = sanitizeHtml(title);
           var list = template.list(topics);
           var html = template.HTML(title, list, 
                     `<h2>${title}</h2>${description}`,
-                    `<a href="/create">create</a>`,
                     `<a href="/create">create</a>
-                    <a href="/update?id=${title}">update</a>
+                    <a href="/update?id=${queryData.id}">update</a>
                     <form action="/delete_process" method="POST">
-                      <input type="hidden" name="id" value="${title}" />
+                      <input type="hidden" name="id" value="${queryData.id}" />
                       <input type="submit" value="delete" />
                     </form>`);
           response.writeHead(200);
