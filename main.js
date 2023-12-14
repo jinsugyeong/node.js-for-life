@@ -77,51 +77,46 @@ var app = http.createServer(function(request, response) {
     
     
   } else if(pathname === '/update') {    //update일 때 실행
-    fs.readdir('./data',function(error, filelist) {
-      var filterId = path.parse(queryData.id).base;
-      fs.readFile(`data/${filterId}`, 'utf8', function(err, description){
-        var title = queryData.id;
-        var list = template.list(filelist);
-        var html =template.HTML(title, list,`
-        <form action="/update_process" method="POST">
-          <input type="hidden" name="id" value="${title}" />
-          <p><input type="text" name="title" placeholder="title" value="${title}" /></p>
-          <p>
-            <textarea name="description" placeholder="description">${description}</textarea>
-          </p>
-          <p><input type="submit" /></p>
-        </form>
-        `, `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
-
+    db.query(`SELECT * FROM topic`, function(error, topics) {
+      if(error){
+        throw error;
+      }
+      db.query(`SELECT * FROM topic WHERE id = ?`, [queryData.id], function(error2, topic) {
+        if(error2){
+          throw error2;
+        }
+        var t = topic[0];
+        var list = template.list(topics);
+        var html = template.HTML(t.title, list, 
+                  `<form action="/update_process" method="POST">
+                    <input type="hidden" name="id" value="${t.id}" />
+                    <p><input type="text" name="title" placeholder="title" value="${t.title}" /></p>
+                    <p>
+                      <textarea name="description" placeholder="description">${t.description}</textarea>
+                    </p>
+                    <p><input type="submit" /></p>
+                  </form>
+                `, `<a href="/create">create</a> <a href="/update?id=${t.id}">update</a>`);
         response.writeHead(200);
-        response.end(html); 
+        response.end(html);
       });
     });
 
 
   } else if(pathname === '/update_process') {    //update_process일 때 실행
     var body = '';
-
     request.on('data', function(data) {
       body = body + data;
     });
 
     request.on('end', function(data) {
       var post = qs.parse(body);
-      var id = post.id; //기존 title
-      var title = post.title; //변경할 title
-      var description = post.description;
-      fs.rename(`data/${id}`,`data/${title}`, function(err){ 
-        if(err)
-          console.log(err);
-        else {
-          fs.writeFile(`data/${title}`, description, 'utf8', function(err){
-            response.writeHead(302, {Location: `/?id=${title}`});
-            response.end();
-          });
+      db.query('UPDATE topic SET title=?, description=?, author_id=3 WHERE id=?',
+        [post.title, post.description, post.id], function(error, result) {
+          response.writeHead(302, {Location: `/?id=${post.id}`});
+          response.end();
         }
-      });
-      
+      );
     });
 
 
