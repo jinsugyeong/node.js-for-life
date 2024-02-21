@@ -17,8 +17,11 @@ var app = http.createServer(function(request, response) {
       topic.page(request, response);
     }
 
-  }else if(pathname === '/author') {
+  } else if(pathname === '/author') {
     author.home(request, response);
+  } else if(pathname === '/author/create_process') {
+    author.create_process(request, response);
+    
 
   } else if(pathname === '/delete_process') { //delete_process일 때 실행
     topic.delete_process(request, response);
