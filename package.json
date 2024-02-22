@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/jinsugyeong/node.js-for-life#readme",
   "dependencies": {
+    "express": "^4.18.2",
     "mysql": "^2.18.1",
     "sanitize-html": "^2.11.0"
   }
