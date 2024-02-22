@@ -3,6 +3,8 @@ const app = express()
 const port = 3000
 var fs = require('fs');
 var template = require('./lib/template.js');
+var path = require('path');
+var sanitizeHtml = require('sanitize-html');
 
 app.get('/', function(req, res) {
   fs.readdir('./data', function(erroer, filelist) {
@@ -17,9 +19,28 @@ app.get('/', function(req, res) {
   })
 })
 
-app.get('/page', function(feq, res) {
-  return res.send('/page')
-})
+//시맨틱 URL 처리방식 , 사용자가 요청한 URL'키:값' 형태로 가져오기
+app.get('/page/:pageId', function(req, res) {
+  fs.readdir('./data', function(error, filelist) {
+    var filteredId = path.parse(req.params.pageId).base;
+    fs.readFile(`data/${filteredId}`, 'utf8', function(err, description) {
+      var title = req.params.pageId;
+      var sanitizedTitle = sanitizeHtml(title);
+      var sanitizedDescription = sanitizeHtml(description, {allowedTags:['h1']});
+      var list = template.list(filelist);
+      var html = template.HTML(sanitizedTitle, list,
+        `<h2>${sanitizedTitle}</h2><p>${sanitizedDescription}</p>`,
+        `<a href="/create">create</a>
+        <a href="/update?id=${sanitizedTitle}">update</a>
+        <form action="delete_process" method="post">
+          <input type="hidden" name="id" value="${sanitizedTitle}">
+          <input type="submit" value="delete">
+        </form>`
+      );
+      res.send(html);
+    });
+  });
+});
 
 app.listen(port, function() {
   console.log(`Example app listening on port ${port}`)
