@@ -33,7 +33,7 @@ app.get('/page/:pageId', function(req, res) {
         `<h2>${sanitizedTitle}</h2><p>${sanitizedDescription}</p>`,
         `<a href="/create">create</a>
         <a href="/update/${sanitizedTitle}">update</a>
-        <form action="delete_process" method="post">
+        <form action="/delete_process" method="post">
           <input type="hidden" name="id" value="${sanitizedTitle}">
           <input type="submit" value="delete">
         </form>`
@@ -120,6 +120,21 @@ app.post('/update_process', function(request, response) {
               response.writeHead(302, {Location: `/page/${title}`});
               response.end();
           });
+      });
+  });
+})
+
+app.post('/delete_process', function(request, response) {
+  var body = '';
+  request.on('data', function(data) {
+      body = body + data;
+  });
+  request.on('end', function() {
+      var post = qs.parse(body);
+      var id = post.id;
+      var filteredId = path.parse(id).base;
+      fs.unlink(`data/${filteredId}`, function(error) {
+        response.redirect('/');
       });
   });
 })
