@@ -1,18 +1,29 @@
 const express = require('express')
 const app = express()
 const port = 3000
+var fs = require('fs');
+var template = require('./lib/template.js');
 
 app.get('/', function(req, res) {
-  res.send('Hello World!');
-});
+  fs.readdir('./data', function(erroer, filelist) {
+    var title = 'Welcome';
+    var description = 'Hello, Node.js';
+    var list = template.list(filelist);
+    var html = template.HTML(title, list, 
+      `<h2>${title}</h2>${description}`,
+      `<a href="/create">create</a>`
+      );
+      res.send(html);
+  })
+})
 
 app.get('/page', function(feq, res) {
-  return res.send('/page');
+  return res.send('/page')
 })
 
 app.listen(port, function() {
-  console.log(`Example app listening on port ${port}`);
-});
+  console.log(`Example app listening on port ${port}`)
+})
 /* ---------------------------------------------------------
 2024-02-22  express 사용을 위한 기존 내용 주석 처리
 
