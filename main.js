@@ -16,6 +16,17 @@ app.get('*', function(request, response, next) { //GET방식으로 전송하는 
     next(); //next함수 호출 <- 그 다음에 실행해야할 미들웨어 의미
   });
 });
+/**
+ *  < 보안과 관련된 지침 >
+ * 
+ * - 익스프레스 버전을 최신으로 유지
+ * - TLS 사용 : HTTPS 프로토콜 사용
+ * - Helmet 모듈 사용 : npm install --save helmet
+ * - 쿠키를 안전하게 사용
+ * - 종속 모듈이 안전한지 확인 : npm i nsp -g, nsp check
+ * - 그 외의 알려진 취약점 회피
+ * - 추가적인 고려사항
+ */
 
 app.use('/', indexRouter);
 app.use('/topic', topicRouter);
