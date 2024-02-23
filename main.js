@@ -17,13 +17,16 @@ app.get('*', function(request, response, next) { //GET방식으로 전송하는 
     next(); //next함수 호출 <- 그 다음에 실행해야할 미들웨어 의미
   });
 });
+app.use(express.static('public'));
 
 app.get('/', function(request, response) {
   var title = 'Welcome';
   var description = 'Hello, Node.js';
   var list = template.list(request.list);
   var html = template.HTML(title, list, 
-    `<h2>${title}</h2>${description}`,
+    `<h2>${title}</h2>${description}
+    <img src="/images/capybara.jpg" style="width:300px; display:block; margin-top:10px;">
+    `,
     `<a href="/create">create</a>`
     );
     response.send(html);
