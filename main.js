@@ -4,18 +4,29 @@ const port = 3000
 var fs = require('fs');
 var bodyParser = require('body-parser');
 var compression = require('compression');
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
 var topicRouter = require('./routes/topic');
 var indexRouter = require('./routes/index');
+var authRouter = require('./routes/auth');
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(compression());
 app.use(express.static('public'));
+app.use(session({
+  secret: 'asadlfkj!@#!@#dfgasdg',
+  resave: false,
+  saveUninitialized: true,
+  store: new FileStore()
+}));
+
 app.get('*', function(request, response, next) { //GET방식으로 전송하는 요청일 때만 미들웨어가 실행될 때마다
   fs.readdir('./data', function(error, filelist) {  //data 디렉터리에 있는 파일 목록을 가져와
     request.list = filelist;  //request.list에 담고
     next(); //next함수 호출 <- 그 다음에 실행해야할 미들웨어 의미
   });
 });
+
 /**
  *  < 보안과 관련된 지침 >
  * 
@@ -30,6 +41,7 @@ app.get('*', function(request, response, next) { //GET방식으로 전송하는 
 
 app.use('/', indexRouter);
 app.use('/topic', topicRouter);
+app.use('/auth', authRouter);
 
 app.use(function(req, res, next) {
   res.status(404).send('Sorry cant find that!');

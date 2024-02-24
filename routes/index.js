@@ -1,27 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var template = require('../lib/template.js');
-var cookie = require('cookie');
-
-function authIsOwner(request, response) {
-    var isOwner = false;
-    var cookies = {};
-    if(request.headers.cookie) {
-        cookies = cookie.parse(request.headers.cookie);
-    }
-    if(cookies.id === 'jsg' && cookies.password === '0000') {
-        isOwner = true;
-    }
-    return isOwner;
-}
-
-function authStatusFn(request, response) {
-    var authStatusUI = '<a href="/login">login</a>';
-    if(authIsOwner(request, response)) {
-        authStatusUI = '<a href="/logout_process">logout</a>';
-    }
-    return authStatusUI;
-}
+var auth = require('../lib/auth.js');
 
 router.get('/', function(request, response) {
     var title = 'Welcome';
@@ -32,11 +12,11 @@ router.get('/', function(request, response) {
         <img src="/images/capybara.jpg" style="width:300px; display:block; margin-top:10px;">
         `,
         `<a href="/topic/create">create</a>`,
-        authStatusFn(request, response)
+        auth.statusUI(request, response)
         );
         response.send(html);
 })
-
+/*
 router.get('/login', function(request, response){
     var title = 'Login';
     var list = template.list(request.list);
@@ -76,6 +56,6 @@ router.get('/logout_process', function(request, response) {
     response.redirect(`/`);
     response.end();
 }) 
-
+*/
 
 module.exports = router;
